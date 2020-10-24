@@ -6,6 +6,7 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.ActivityManager;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
@@ -13,6 +14,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.ListView;
@@ -50,13 +52,18 @@ public class MainActivity extends AppCompatActivity {
     class TextAdapter extends BaseAdapter {
 
         private List<String> data = new ArrayList<>();
+        private boolean[] selections;
 
         public void setData(List<String> data) {
             if (data != null) {
-                this.data.clear();
-                if (!data.isEmpty()) {
-                    this.data.addAll(data);
-                }
+                this.data = data;
+                notifyDataSetChanged();
+            }
+        }
+
+        public void setSelections(boolean[] selections){
+            if(selections!=null){
+                this.selections = selections;
                 notifyDataSetChanged();
             }
         }
@@ -85,6 +92,14 @@ public class MainActivity extends AppCompatActivity {
             ViewHolder viewHolder = (ViewHolder) convertView.getTag();
             final String value = getItem(position);
             viewHolder.info.setText(value);
+            if(selections!=null){
+                if(selections[position]){
+                    viewHolder.info.setBackgroundColor(Color.LTGRAY);
+                }
+                else{
+                    viewHolder.info.setBackgroundColor(Color.WHITE);
+                }
+            }
             return convertView;
         }
 
@@ -116,7 +131,7 @@ public class MainActivity extends AppCompatActivity {
         return false;
     }
 
-    private boolean isFileManagerInitialized = false;
+    protected boolean isFileManagerInitiated = false;
 
     // to check if we still have permission, if user disabled permission later
     @Override
@@ -126,28 +141,39 @@ public class MainActivity extends AppCompatActivity {
             requestPermissions(PERMISSIONS, REQUEST_PERMISSIONS);
             return;
         }
-        if (!isFileManagerInitialized) {
+
+        if(!isFileManagerInitiated) {
+
             final String rootPath = String.valueOf(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS));
-            Log.println(Log.DEBUG, "DEBUG", rootPath);
+            final String rootFolderName = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getName();
             final File dir = new File(rootPath);
             final File[] files = dir.listFiles();
             final TextView pathOutput = findViewById(R.id.pathOutput);
-            pathOutput.setText(rootPath);
+            pathOutput.setText(rootFolderName);
 
             final ListView listView = findViewById(R.id.listView);
             final TextAdapter textAdapter1 = new TextAdapter();
             listView.setAdapter(textAdapter1);
 
             List<String> fileNames = new ArrayList<>();
-            if(files!=null) {
+            if (files != null) {
                 for (File file : files) {
-                    fileNames.add(file.getAbsolutePath());
+                    fileNames.add(file.getName());
                 }
+                boolean[] selections = new boolean[files.length];
+                listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+                    @Override
+                    public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+                        selections[position] = !selections[position];
+                        textAdapter1.setSelections(selections);
+                        return false;
+                    }
+                });
             }
 
             textAdapter1.setData(fileNames);
-            isFileManagerInitialized = true;
-        } else {
+            isFileManagerInitiated = true;
+        }else{
 
         }
     }

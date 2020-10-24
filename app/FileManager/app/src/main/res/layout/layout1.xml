@@ -5,19 +5,12 @@
     android:orientation="vertical">
 
     <TextView
-        android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:background="@color/black"
-        android:gravity="center"
-        android:text="@string/file_manager"
-        android:textColor="@color/lightColor"
-        android:textSize="25sp" />
-
-    <TextView
         android:id="@+id/pathOutput"
+        android:background="@color/black"
         android:layout_width="match_parent"
-        android:layout_height="50dp"
+        android:layout_height="wrap_content"
         android:gravity="center"
+        android:textColor="@color/lightColor"
         android:textSize="20sp"/>
 
     <ListView
