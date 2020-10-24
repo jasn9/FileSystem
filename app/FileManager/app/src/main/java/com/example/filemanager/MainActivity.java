@@ -8,6 +8,8 @@ import android.app.ActivityManager;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,9 +18,13 @@ import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import org.w3c.dom.Text;
+
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.logging.Logger;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -39,17 +45,6 @@ public class MainActivity extends AppCompatActivity {
                 b1.setText("pressed");
             }
         });
-
-        final ListView listView = findViewById(R.id.listView);
-        final TextAdapter textAdapter1 = new TextAdapter();
-        listView.setAdapter(textAdapter1);
-
-        List<String> example = new ArrayList<>();
-        for (int i = 0; i < 100; i++) {
-            example.add(String.valueOf(i));
-        }
-
-        textAdapter1.setData(example);
     }
 
     class TextAdapter extends BaseAdapter {
@@ -112,34 +107,61 @@ public class MainActivity extends AppCompatActivity {
     private static final int PERMISSIONS_COUNT = 2;
 
     @SuppressLint("NewApi")
-    private boolean arePermissionsDenied(){
+    private boolean arePermissionsDenied() {
         for (String permission : PERMISSIONS) {
-                if (checkSelfPermission(permission) != PackageManager.PERMISSION_GRANTED) {
-                    return true;
-                }
+            if (checkSelfPermission(permission) != PackageManager.PERMISSION_GRANTED) {
+                return true;
+            }
         }
         return false;
     }
 
+    private boolean isFileManagerInitialized = false;
+
     // to check if we still have permission, if user disabled permission later
     @Override
-    protected void onResume(){
+    protected void onResume() {
         super.onResume();
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (arePermissionsDenied()) {
-                requestPermissions(PERMISSIONS, REQUEST_PERMISSIONS);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && arePermissionsDenied()) {
+            requestPermissions(PERMISSIONS, REQUEST_PERMISSIONS);
+            return;
+        }
+        if (!isFileManagerInitialized) {
+            final String rootPath = String.valueOf(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS));
+            Log.println(Log.DEBUG, "DEBUG", rootPath);
+            final File dir = new File(rootPath);
+            final File[] files = dir.listFiles();
+            final TextView pathOutput = findViewById(R.id.pathOutput);
+            pathOutput.setText(rootPath);
+
+            final ListView listView = findViewById(R.id.listView);
+            final TextAdapter textAdapter1 = new TextAdapter();
+            listView.setAdapter(textAdapter1);
+
+            List<String> fileNames = new ArrayList<>();
+            if(files!=null) {
+                for (File file : files) {
+                    fileNames.add(file.getAbsolutePath());
+                }
             }
+
+            textAdapter1.setData(fileNames);
+            isFileManagerInitialized = true;
+        } else {
+
         }
     }
 
     @SuppressLint("NewApi")
     @Override
-    public void onRequestPermissionsResult(final int requestCode, final String[] permissions, final int[] grantResults){
+    public void onRequestPermissionsResult(final int requestCode, final String[] permissions, final int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if(requestCode==REQUEST_PERMISSIONS && grantResults.length > 0){
-            if(arePermissionsDenied()){
+        if (requestCode == REQUEST_PERMISSIONS && grantResults.length > 0) {
+            if (arePermissionsDenied()) {
                 ((ActivityManager) Objects.requireNonNull(this.getSystemService(ACTIVITY_SERVICE))).clearApplicationUserData();
                 recreate();
+            } else {
+                onResume();
             }
         }
     }
