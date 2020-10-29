@@ -18,7 +18,7 @@ public class FileUtils {
     }
     public static ListItem convertToListItem(File file){
         ListItem listItem = new ListItem();
-        listItem.setText(file.getName());
+        listItem.setFile(file);
         return listItem;
     }
 }

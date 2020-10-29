@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">FileManager</string>
     <string name="file_manager">File Manager</string>
+    <string name="path_break"><![CDATA[>]]></string>
 </resources>

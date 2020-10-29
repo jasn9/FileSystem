@@ -9,6 +9,9 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -19,24 +22,57 @@ import java.util.logging.Logger;
 
 public class MainActivity extends AppCompatActivity {
 
+    private static final ListAdapter listAdapter = new ListAdapter();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
     }
 
-    private void startApp(){
-        final ListView listFiles = findViewById(R.id.listFiles);
-        final TextView path = findViewById(R.id.path);
+    private void updateFilesListView(File dir){
+        final TextView currentDir = findViewById(R.id.currentDir);
+        final TextView parentDir = findViewById(R.id.parentDir);
+        final TextView pathBreak = findViewById(R.id.pathBreak);
 
-        final String rootPath = String.valueOf(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS));
-        final File dir = new File(rootPath);
         final File[] files = dir.listFiles();
         final List<ListItem> filesList = FileUtils.convertToListItems(files);
+        listAdapter.setList(filesList);
 
-        path.setText(rootPath);
-        Log.d("DEBUG: ", rootPath);
-        listFiles.setAdapter(new ListAdapter(filesList));
+        if(dir.getParentFile()!=null) {
+            parentDir.setText(dir.getParentFile().getName());
+            parentDir.setTag(dir.getParentFile());
+            parentDir.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    updateFilesListView((File) parentDir.getTag());
+                }
+            });
+
+            currentDir.setText(dir.getName());
+            pathBreak.setVisibility(View.VISIBLE);
+        }
+        else {
+            currentDir.setText(dir.getName());
+            pathBreak.setVisibility(View.GONE);
+        }
+    }
+
+    private void startApp(){
+        final ListView listFiles = findViewById(R.id.listFiles);
+        listFiles.setAdapter(listAdapter);
+
+        updateFilesListView(Environment.getExternalStorageDirectory());
+
+        listFiles.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                File file = listAdapter.getItem(position).getFile();
+                if(file.isDirectory()){
+                    updateFilesListView(file);
+                }
+            }
+        });
     }
 
     private static final int REQUEST_PERMISSIONS = 1234;

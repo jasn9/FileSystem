@@ -1,12 +1,24 @@
 package com.example.filemanager;
 
-public class ListItem {
-    private String text;
+import java.io.File;
 
-    public void setText(String text) {
-        this.text = text;
+public class ListItem {
+    private File file;
+
+    public void setFile(File file) {
+        this.file = file;
     }
+
+    public File getFile() {
+        return file;
+    }
+
     public String getText() {
-        return text;
+        if(file!=null) {
+            return file.getName();
+        }
+        else{
+            return null;
+        }
     }
 }
