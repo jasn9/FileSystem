@@ -87,7 +87,7 @@ public class MainActivity extends AppCompatActivity {
                 }
 
                 JsonObjectRequest jsonObjectRequest = new JsonObjectRequest
-                        (Request.Method.GET, url, jsonObject,
+                        (Request.Method.POST, url, jsonObject,
                                 response -> Log.d("Debug Req: ", "Response: " + response.toString()),
                                 error -> {
                                     Log.d("Debug Req: ", "Error: "+error.getMessage());
