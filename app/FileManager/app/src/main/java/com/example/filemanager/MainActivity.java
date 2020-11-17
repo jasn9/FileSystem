@@ -11,10 +11,22 @@ import android.os.Environment;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.File;
 import java.util.List;
@@ -58,6 +70,33 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    private void setUpWeb(){
+        final Button connectButton = findViewById(R.id.connect);
+        connectButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                RequestQueue queue = Volley.newRequestQueue(getApplicationContext());
+
+                String url = "https://file-system-backend.herokuapp.com/getCode";
+
+                JSONObject jsonObject = new JSONObject();
+                try {
+                    jsonObject.put("id", "1234");
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+                JsonObjectRequest jsonObjectRequest = new JsonObjectRequest
+                        (Request.Method.GET, url, jsonObject,
+                                response -> Log.d("Debug Req: ", "Response: " + response.toString()),
+                                error -> {
+                                    Log.d("Debug Req: ", "Error: "+error.getMessage());
+                                });
+                queue.add(jsonObjectRequest);
+            }
+        });
+    }
+
     private void startApp(){
         final ListView listFiles = findViewById(R.id.listFiles);
         listFiles.setAdapter(listAdapter);
@@ -73,13 +112,16 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+
+        setUpWeb();
     }
 
     private static final int REQUEST_PERMISSIONS = 1234;
 
     private static final String[] PERMISSIONS = {
             Manifest.permission.READ_EXTERNAL_STORAGE,
-            Manifest.permission.WRITE_EXTERNAL_STORAGE
+            Manifest.permission.WRITE_EXTERNAL_STORAGE,
+            Manifest.permission.INTERNET
     };
 
     private boolean checkPermission(String[] permissions){
