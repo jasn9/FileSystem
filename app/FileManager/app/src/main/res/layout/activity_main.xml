@@ -20,7 +20,7 @@
                 android:padding="6dp"
                 android:id="@+id/parentDir"
                 android:textSize="20sp"
-                android:textColor="@color/black"
+                android:textColor="@color/teal_700"
                 android:layout_width="wrap_content"
                 android:layout_height="50dp" />
 
@@ -29,7 +29,7 @@
                 android:text="@string/path_break"
                 android:padding="6dp"
                 android:textSize="20sp"
-                android:textColor="@color/black"
+                android:textColor="@color/teal_700"
                 android:layout_width="wrap_content"
                 android:layout_height="50dp" />
 

@@ -132,8 +132,8 @@ public class MainActivity extends AppCompatActivity {
         final ListView listFiles = findViewById(R.id.listFiles);
         listFiles.setAdapter(listAdapter);
 
-        updateFilesListView(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS));
-
+        updateFilesListView(Environment.getExternalStorageDirectory());
+        Log.d("Path: ", Environment.getExternalStorageDirectory().getAbsolutePath());
         listFiles.setOnItemClickListener((parent, view, position, id) -> {
             File file = listAdapter.getItem(position).getFile();
             if(file.isDirectory()){
