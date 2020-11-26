@@ -12,29 +12,38 @@ import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
-import android.widget.LinearLayout;
+import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
-import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
+import com.example.filemanager.Clients.GetCodeResponse;
+import com.example.filemanager.POJOS.Session;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
 import java.util.List;
-import java.util.logging.Logger;
+
+import okhttp3.OkHttpClient;
+import okhttp3.Response;
+import okhttp3.WebSocket;
 
 public class MainActivity extends AppCompatActivity {
 
     private static final ListAdapter listAdapter = new ListAdapter();
+    private static final OkHttpClient okHttpClient = new OkHttpClient();
+    private static final ObjectMapper objectMapper = new ObjectMapper();
+    private static final String URL = "https://file-system-backend.herokuapp.com/getCode";
+
+    private WebSocket webSocket;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,27 +79,49 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    private void createSocket(String url){
+        okhttp3.Request request = new okhttp3.Request.Builder().url(url).build();
+        EchoWebSocketListener webSocketListener = new EchoWebSocketListener();
+        webSocket = okHttpClient.newWebSocket(request, webSocketListener);
+        Session.getSessionObject().setStarted(true);
+    }
+
+    private void sendMessage(String message){
+        if(!Session.getSessionObject().isStarted()){
+            createSocket(URL);
+        }
+        webSocket.send(message);
+    }
+
+    private void getCodeResponseProcess(JSONObject response){
+        try {
+            Log.d("GetCode Res: ",  response.toString());
+            GetCodeResponse getCodeResponse = objectMapper.readValue(response.toString(), GetCodeResponse.class);
+            Session.getSessionObject().setCode(getCodeResponse.getCode());
+            createSocket(URL);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+    }
+
     private void setUpWeb(){
         final Button connectButton = findViewById(R.id.connect);
-        connectButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
+        connectButton.setOnClickListener(v -> {
+
+            if(!Session.getSessionObject().isStarted()) {
+
                 RequestQueue queue = Volley.newRequestQueue(getApplicationContext());
-
-                String url = "https://file-system-backend.herokuapp.com/getCode";
-
                 JSONObject jsonObject = new JSONObject();
                 try {
                     jsonObject.put("id", "1234");
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
-
                 JsonObjectRequest jsonObjectRequest = new JsonObjectRequest
-                        (Request.Method.POST, url, jsonObject,
-                                response -> Log.d("Debug Req: ", "Response: " + response.toString()),
+                        (Request.Method.POST, URL, jsonObject,
+                                this::getCodeResponseProcess,
                                 error -> {
-                                    Log.d("Debug Req: ", "Error: "+error.getMessage());
+                                    Log.d("GetCode Error: ", error.getMessage());
                                 });
                 queue.add(jsonObjectRequest);
             }
@@ -101,19 +132,22 @@ public class MainActivity extends AppCompatActivity {
         final ListView listFiles = findViewById(R.id.listFiles);
         listFiles.setAdapter(listAdapter);
 
-        updateFilesListView(Environment.getExternalStorageDirectory());
+        updateFilesListView(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS));
 
-        listFiles.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                File file = listAdapter.getItem(position).getFile();
-                if(file.isDirectory()){
-                    updateFilesListView(file);
-                }
+        listFiles.setOnItemClickListener((parent, view, position, id) -> {
+            File file = listAdapter.getItem(position).getFile();
+            if(file.isDirectory()){
+                updateFilesListView(file);
             }
         });
 
         setUpWeb();
+
+        // dummy
+        Button button = findViewById(R.id.close);
+        button.setOnClickListener(v -> {
+            webSocket.cancel();
+        });
     }
 
     private static final int REQUEST_PERMISSIONS = 1234;
@@ -157,5 +191,12 @@ public class MainActivity extends AppCompatActivity {
         else{
             Toast.makeText(getApplicationContext(), "PERMISSIONS DENIED!!!", Toast.LENGTH_LONG).show();
         }
+    }
+
+    @Override
+    protected void onDestroy(){
+        super.onDestroy();
+        // prevented reconnecting while in onResume hence moved to onDestroy
+        okHttpClient.dispatcher().executorService().shutdown();
     }
 }

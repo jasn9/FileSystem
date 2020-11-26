@@ -3,4 +3,5 @@
     <string name="file_manager">File Manager</string>
     <string name="path_break"><![CDATA[>]]></string>
     <string name="connect">Connect</string>
+    <string name="close">close</string>
 </resources>
