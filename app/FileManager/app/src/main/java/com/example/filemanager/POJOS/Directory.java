@@ -1,19 +1,19 @@
 package com.example.filemanager.POJOS;
 
-public class Item {
-    private String filePath;
+public class Directory {
+    private String path;
     private String type;
 
     public void setType(String type) {
         this.type = type;
     }
 
-    public void setFilePath(String filePath) {
-        this.filePath = filePath;
+    public void setPath(String path) {
+        this.path = path;
     }
 
-    public String getFilePath() {
-        return filePath;
+    public String getPath() {
+        return path;
     }
 
     public String getType() {

@@ -2,30 +2,19 @@ package com.example.filemanager.Clients;
 
 import androidx.annotation.NonNull;
 
-import com.example.filemanager.POJOS.Item;
+import com.example.filemanager.POJOS.Directory;
 
 import java.util.List;
 
 public class GetDirectoriesResponse {
     @NonNull
-    private List<Item> items;
+    private List<Directory> directories;
 
-    @NonNull
-    private String code;
-
-    public void setItems(List<Item> items) {
-        this.items = items;
+    public void setDirectories(List<Directory> directories) {
+        this.directories = directories;
     }
 
-    public void setCode(String code) {
-        this.code = code;
-    }
-
-    public List<Item> getItems() {
-        return items;
-    }
-
-    public String getCode() {
-        return code;
+    public List<Directory> getDirectories() {
+        return directories;
     }
 }

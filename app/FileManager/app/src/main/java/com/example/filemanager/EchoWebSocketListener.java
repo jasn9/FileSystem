@@ -22,7 +22,7 @@ public class EchoWebSocketListener extends WebSocketListener {
     public void onOpen(WebSocket webSocket, Response response){
         MessageBody res = new MessageBody();
         res.setTag(Constants.FIRST_MESSAGE);
-        res.setAndroid(false);
+        res.setAndroid(true);
         res.setConnection_code(Session.getSessionObject().getCode());
         res.setValue("Hello....UnderCover123");
         String stringRes = null;
@@ -32,38 +32,42 @@ public class EchoWebSocketListener extends WebSocketListener {
             e.printStackTrace();
         }
         webSocket.send(stringRes);
-        //webSocket.close(NORMAL_CLOSURE_STATUE, "Bye");
     }
 
     @Override
     public void onMessage(WebSocket webSocket, String text){
-        Log.d("Socket Res: ", text);
         try {
             MessageBody messageBody = objectMapper.readValue(text, MessageBody.class);
             if(messageBody.getTag().equals(Constants.GET_DIRECTORY)) {
-                GetDirectoriesRequest getDirectoriesRequest = objectMapper.readValue(messageBody.getValue(), GetDirectoriesRequest.class);
+                Log.d("Socket Message: ", text);
+                GetDirectoriesRequest getDirectoriesRequest = objectMapper.convertValue(messageBody.getValue(), GetDirectoriesRequest.class);
                 GetDirectoriesResponse getDirectoriesResponse = FileUtils.getFiles(getDirectoriesRequest);
-                getDirectoriesResponse.setCode(Session.getSessionObject().getCode());
-                String value = objectMapper.writeValueAsString(getDirectoriesResponse);
                 MessageBody res = new MessageBody();
-                res.setAndroid(false);
+                res.setAndroid(true);
                 res.setConnection_code(Session.getSessionObject().getCode());
                 res.setTag(Constants.GET_DIRECTORY);
-                res.setValue(value);
+                res.setValue(getDirectoriesResponse);
                 String stringRes = objectMapper.writeValueAsString(res);
                 Log.d("Socket Res:", stringRes);
                 webSocket.send(stringRes);
             }
             else{
+                if(messageBody.getTag().equals(Constants.PING)){
+
+                }
+                else{
+                    Log.d("Socket Message: ", text);
+                }
             }
         } catch (JsonProcessingException e) {
+            Log.d("Socket Message: ", text);
             e.printStackTrace();
         }
     }
 
     @Override
     public void onMessage(WebSocket webSocket, ByteString bytes){
-        Log.d("Socket Res: ", bytes.hex());
+        Log.d("Socket Message: ", bytes.hex());
     }
 
     @Override

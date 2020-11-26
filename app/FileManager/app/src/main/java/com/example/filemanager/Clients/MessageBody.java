@@ -9,7 +9,7 @@ public class MessageBody {
     private boolean android;
     @NonNull
     private String connection_code;
-    private String value;
+    private Object value;
 
     public String getTag() {
         return tag;
@@ -23,7 +23,7 @@ public class MessageBody {
         return connection_code;
     }
 
-    public String getValue() {
+    public Object getValue() {
         return value;
     }
 
@@ -39,7 +39,7 @@ public class MessageBody {
         this.connection_code = connection_code;
     }
 
-    public void setValue(String value) {
+    public void setValue(Object value) {
         this.value = value;
     }
 }
