@@ -12,6 +12,10 @@ const AuthSchema=new mongoose.Schema({
   ClientId:{
     type: String,
     required: true
+  },
+  TimeStamp:{
+    type: Date,
+    required: true
   }
 });
 const Auth = mongoose.model("Auth", AuthSchema);
