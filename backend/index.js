@@ -47,15 +47,19 @@ wss.on('request',(req)=>{
     console.log(req);
 })
 //To differentiate between clients -(2nd ans.) https://stackoverflow.com/questions/13364243/websocketserver-node-js-how-to-differentiate-clients
+function snd_msg(tag,android,connection_code,value){
+	var ini_data={
+		'tag':tag,
+		'android':android,
+		'connection_code':connection_code,
+		'value':value
+    }
+ 	return (JSON.stringify(ini_data));   
+}
 wss.on('connection', (ws) => {
 	console.log('Client connected');
-	var ini_data={
-		'tag':'ping',
-		'android':null,
-		'connection_code':null,
-		'value':'Connection established'
-    }
-	ws.send(JSON.stringify(ini_data));
+	ws.send(snd_msg('ack',null,null,'Connection established'));
+
 	ws.on('message',(msg)=>{
 		console.log('Msg for client: '+msg);
 		var json_obj=msg;
@@ -65,13 +69,13 @@ wss.on('connection', (ws) => {
 			}
 			catch(err){
 				console.log("Inside socket connection string to json "+err);
-				ws.send('must be a json stringfied object')
+				ws.send(snd_msg('error',null,null,'Message must be in json stringfied form'));
 			}
 		}
 		
 		//checks
 		if(json_obj['tag']==null||json_obj['connection_code']==null||json_obj['android']==null){
-			ws.send("Socket message should containe fields : first_msg,connection_code,android and optional fields value");
+			ws.send(snd_msg('error',null,null,'Socket message should containe fields : first_msg,connection_code,android and optional fields value'));
 		}
 		else{
 			if(json_obj['tag']==='firstMessage'){
@@ -79,14 +83,14 @@ wss.on('connection', (ws) => {
 				authModel.findOne({Token:Code}, async function(err,data){
 					if(err||data==null){
 			    		console.log("Inside socket connection in first_msg token checks"+err);
-			    		ws.send('Connection Code is wrong');
+			    		ws.send(snd_msg('error',null,null,'Connection Code is wrong'));
 			    	}
 			    	else{
 			    		if(json_obj['android'])
 			    			ws.id=data['AndroidId']
 			    		else
 			    			ws.id=data['ClientId']
-			    		ws.send('First message recieved Successfully')
+			    		ws.send(snd_msg('ack',null,null,'First message recieved Successfully'));
 			    	}
 				});
 			}
@@ -96,38 +100,32 @@ wss.on('connection', (ws) => {
 				authModel.findOne({Token:Code}, async function(err,data){
 					if(err||data==null){
 			    		console.log("Inside socket connection NOT in first_msg token checks"+err);
-			    		ws.send('Connection Code is wrong');
+			    		ws.send(snd_msg('error',null,null,'Connection Code is wrong'));
 			    	}
 			    	else{
 			    		var id_to_search="tmp";
-			    		console.log(json_obj['android'])
+			    		// console.log(json_obj['android'])
 			    		if(json_obj['android']) id_to_search=data['ClientId'];
 			    		else id_to_search=data['AndroidId']; 
 			    		wss.clients.forEach((client) => {
 		    				if(client.id==id_to_search){
-		    					console.log(client.id+" "+msg_snd);
+		    					// console.log(client.id+" "+String(msg_snd));
 		    					client.send(JSON.stringify(json_obj));
 		    				}
 		    			});
-		    			ws.send('Msg sent Successfully');
+		    			ws.send(snd_msg('ack',null,null,'Message sent Successfully'));
 			    	}
 				});
 			}
 			else{
-				ws.send('Tag value must be either FirstMessage or GetDirectory');
+				ws.send(snd_msg('error',null,null,'Tag value must be either FirstMessage or GetDirectory'));
 				console.log("Wrong value inside tag");
 			}
 		}
 	})
 	setInterval(() => {
 	  wss.clients.forEach((client) => {
-	  	var snd_data={
-    		'tag':'ping',
-    		'android':null,
-    		'connection_code':null,
-    		'value':null
-    	}
-	    client.send(JSON.stringify(snd_data));
+	    client.send(snd_msg('ping',null,null,null));
 	  });
 	},10000);
   	ws.on('close', () => console.log('Client disconnected'));
