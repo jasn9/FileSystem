@@ -4,4 +4,6 @@
     <string name="path_break"><![CDATA[>]]></string>
     <string name="connect">Connect</string>
     <string name="close">close</string>
+    <string name="Web">Web</string>
+    <string name="code">code</string>
 </resources>

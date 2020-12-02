@@ -4,11 +4,14 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.Manifest;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
@@ -39,16 +42,27 @@ import okhttp3.WebSocket;
 public class MainActivity extends AppCompatActivity {
 
     private static final ListAdapter listAdapter = new ListAdapter();
-    private static final OkHttpClient okHttpClient = new OkHttpClient();
-    private static final ObjectMapper objectMapper = new ObjectMapper();
-    private static final String URL = "https://file-system-backend.herokuapp.com/getCode";
-
-    private WebSocket webSocket;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu){
+        getMenuInflater().inflate(R.menu.activity_main_menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+        if(id == R.id.web){
+            Intent intent = new Intent(this, Web.class);
+            startActivity(intent);
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     private void updateFilesListView(File dir){
@@ -79,55 +93,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void createSocket(String url){
-        okhttp3.Request request = new okhttp3.Request.Builder().url(url).build();
-        EchoWebSocketListener webSocketListener = new EchoWebSocketListener();
-        webSocket = okHttpClient.newWebSocket(request, webSocketListener);
-        Session.getSessionObject().setStarted(true);
-    }
-
-    private void sendMessage(String message){
-        if(!Session.getSessionObject().isStarted()){
-            createSocket(URL);
-        }
-        webSocket.send(message);
-    }
-
-    private void getCodeResponseProcess(JSONObject response){
-        try {
-            Log.d("GetCode Res: ",  response.toString());
-            GetCodeResponse getCodeResponse = objectMapper.readValue(response.toString(), GetCodeResponse.class);
-            Session.getSessionObject().setCode(getCodeResponse.getCode());
-            createSocket(URL);
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void setUpWeb(){
-        final Button connectButton = findViewById(R.id.connect);
-        connectButton.setOnClickListener(v -> {
-
-            if(!Session.getSessionObject().isStarted()) {
-
-                RequestQueue queue = Volley.newRequestQueue(getApplicationContext());
-                JSONObject jsonObject = new JSONObject();
-                try {
-                    jsonObject.put("id", "1234");
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-                JsonObjectRequest jsonObjectRequest = new JsonObjectRequest
-                        (Request.Method.POST, URL, jsonObject,
-                                this::getCodeResponseProcess,
-                                error -> {
-                                    Log.d("GetCode Error: ", error.getMessage());
-                                });
-                queue.add(jsonObjectRequest);
-            }
-        });
-    }
-
     private void startApp(){
         final ListView listFiles = findViewById(R.id.listFiles);
         listFiles.setAdapter(listAdapter);
@@ -141,12 +106,10 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        setUpWeb();
-
         // dummy
         Button button = findViewById(R.id.close);
         button.setOnClickListener(v -> {
-            webSocket.cancel();
+            Session.getSessionObject().getWebSocket().cancel();
         });
     }
 
@@ -197,6 +160,8 @@ public class MainActivity extends AppCompatActivity {
     protected void onDestroy(){
         super.onDestroy();
         // prevented reconnecting while in onResume hence moved to onDestroy
-        okHttpClient.dispatcher().executorService().shutdown();
+        Session.getSessionObject().getWebSocket().cancel();
+        Session.getSessionObject().setStarted(false);
+        Session.getSessionObject().getOkHttpClient().dispatcher().executorService().shutdown();
     }
 }
