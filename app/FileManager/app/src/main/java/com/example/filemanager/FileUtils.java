@@ -2,9 +2,19 @@ package com.example.filemanager;
 
 import com.example.filemanager.Clients.GetDirectoriesRequest;
 import com.example.filemanager.Clients.GetDirectoriesResponse;
+import com.example.filemanager.Clients.GetFileRequest;
+import com.example.filemanager.Clients.GetFileResponse;
 import com.example.filemanager.POJOS.Directory;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -24,6 +34,21 @@ public class FileUtils {
         ListItem listItem = new ListItem();
         listItem.setFile(file);
         return listItem;
+    }
+
+    protected static GetFileResponse getFiles(GetFileRequest getFileRequest) throws IOException {
+        File dir = new File(getFileRequest.getPath());
+        if(dir!=null){
+            if(dir.isFile()){
+                byte[] bytes = new byte[(int) dir.length()];
+                BufferedInputStream bufferedInputStream = new BufferedInputStream(new FileInputStream(dir));
+                bufferedInputStream.read(bytes, 0, bytes.length);
+                GetFileResponse getFileResponse = new GetFileResponse();
+                getFileResponse.setData(bytes);
+                return getFileResponse;
+            }
+        }
+        return null;
     }
 
     protected static GetDirectoriesResponse getFiles(GetDirectoriesRequest getDirectoriesRequest){
