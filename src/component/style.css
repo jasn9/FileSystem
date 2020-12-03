@@ -1,0 +1,107 @@
+/** {
+  padding:0;
+  margin:0;
+}
+
+body {
+  color: #333;
+  font: 14px Sans-Serif;
+  padding: 50px;
+  background: #eee;
+}
+
+h1 {
+  text-align: center;
+  padding: 20px 0 12px 0;
+  margin: 0;
+}
+
+h2 {
+  font-size: 16px;
+  text-align: center;
+  padding: 0 0 12px 0; 
+}
+
+#container {
+  box-shadow: 0 5px 10px -5px rgba(0,0,0,0.5);
+  position: relative;
+  background: white; 
+}
+
+table {
+  background-color: #F3F3F3;
+  border-collapse: collapse;
+  width: 100%;
+  margin: 15px 0;
+}
+
+th {
+  background-color: #FE4902;
+  color: #FFF;
+  cursor: pointer;
+  padding: 5px 10px;
+}
+
+
+td, th {
+  text-align: left;
+  
+}
+
+
+tr a {
+  color: #663300;
+  display: block;
+  
+  padding: 5px 10px;
+}
+
+
+
+th a {
+  padding-left: 0
+}
+
+/*.sortable {
+	border-collapse:separate; 
+    border-spacing:0 15px; 
+}
+*/
+/*.geeks {
+	border-right: hidden;
+}
+
+
+*/
+
+
+table { 
+        border-collapse: collapse; 
+    } 
+    th { 
+        background-color:#333; 
+        Color:white; 
+    } 
+    th, td { 
+        width:150px; 
+        text-align:center; 
+        border:1px solid black; 
+        padding:5px 
+      
+    } 
+    .geeks { 
+        border-right:hidden; 
+    } 
+    .gfg { 
+        border-collapse:separate; 
+        border-spacing:0 15px; 
+    } 
+    h1 { 
+        color:green; 
+    } 
+
+.backButton {
+	 margin: 60px 0px 0px 450px;
+	 position: fixed;
+	 background-color: #333; 
+}
