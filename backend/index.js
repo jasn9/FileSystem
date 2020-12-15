@@ -1,25 +1,24 @@
 const express=require('express');
 const mongoose=require('mongoose');
 const authRoutes = require('./routes/routers.js');
-var cors = require("cors");//cors provides Express middleware to enable CORS with various options
+var cors = require("cors");
 const app=express()
 const server=require('http').createServer(app);
 const authModel = require('./models/authModel');
+
+//Cors is used to restrict the access to backend resources
 var corsOptions = {
     'origin': '*',
     'methods': 'GET,HEAD,PUT,PATCH,POST,DELETE',
     'credentials':false
   };
-
-  /*To DO
-  	1)Same Code should be sent if android and client are connected/attached.
-	*/
 app.use(cors());
 app.use(function(req, res, next) {
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Headers", "X-Requested-With");
   next();
   });
+//---------------
 app.use(express.json());
 
 //Connect ot MongoDb Atlas
@@ -47,7 +46,7 @@ wss.on('request',(req)=>{
     console.log(req);
 })
 //To differentiate between clients -(2nd ans.) https://stackoverflow.com/questions/13364243/websocketserver-node-js-how-to-differentiate-clients
-function snd_msg(tag,android,connection_code,value){
+function snd_msg(tag,android,connection_code,value){//helper function to
 	var ini_data={
 		'tag':tag,
 		'android':android,
@@ -56,10 +55,11 @@ function snd_msg(tag,android,connection_code,value){
     }
  	return (JSON.stringify(ini_data));   
 }
+
+
 wss.on('connection', (ws) => {
 	console.log('Client connected');
 	ws.send(snd_msg('ack',null,null,'Connection established'));
-
 	ws.on('message',(msg)=>{
 		console.log('Msg for client: '+msg);
 		var json_obj=msg;
@@ -72,7 +72,6 @@ wss.on('connection', (ws) => {
 				ws.send(snd_msg('error',null,null,'Message must be in json stringfied form'));
 			}
 		}
-		
 		//checks
 		if(json_obj['tag']==null||json_obj['connection_code']==null||json_obj['android']==null){
 			ws.send(snd_msg('error',null,null,'Socket message should containe fields : first_msg,connection_code,android and optional fields value'));
@@ -94,9 +93,9 @@ wss.on('connection', (ws) => {
 			    	}
 				});
 			}
-			else if(json_obj['tag']==='getDirectory'){
+			else if(json_obj['tag']==='getDirectory'||json_obj['tag']==='getFile'){
 				var Code=json_obj['connection_code'];
-				var msg_snd=json_obj['value']
+				// var msg_snd=json_obj['value']
 				authModel.findOne({Token:Code}, async function(err,data){
 					if(err||data==null){
 			    		console.log("Inside socket connection NOT in first_msg token checks"+err);
@@ -118,7 +117,7 @@ wss.on('connection', (ws) => {
 				});
 			}
 			else{
-				ws.send(snd_msg('error',null,null,'Tag value must be either FirstMessage or GetDirectory'));
+				ws.send(snd_msg('error',null,null,'Tag value must be either FirstMessage or GetDirectory or GetDirectory'));
 				console.log("Wrong value inside tag");
 			}
 		}
@@ -131,45 +130,14 @@ wss.on('connection', (ws) => {
   	ws.on('close', () => console.log('Client disconnected'));
 });
 
-// {
-// 	"tag":"firstMessage/getDirectory/ping",
-// 	"android":true,
-// 	"connection_code":"1234012002",
-// 	"value":"something"
-// }
-
-//Socket.io Setup
-// var http = require('http').createServer(app);
-// var io = require('socket.io')(http);
-// console.log("In index js2")
-// //Whenever someone connects this gets executed
-// io.on('connection',(socket)=>{
-// 	console.log("In index js3")
-// 	console.log('user connected')
-// 	io.emit('chat message',{ description: "New user connected"});
-// 	socket.on('join',(userNickname)=>{
-// 		console.log(userNickname +" has joined the chat "  );
-// 		io.emit('userjoinedthechat',userNickname +" : has joined the chat ")
-// 	})
-// 	socket.on('chat message', (msg) => {
-// 	    console.log('message: ' + msg);
-// 	    io.emit('chat message', msg);
-// 	});
-// 	socket.on('messagedetection',(senderNickname,messageContent)=>{
-// 		console.log(senderNickname+" : " +messageContent)
-// 		//create a message object 
-// 		let  message = {"message":messageContent, "senderNickname":senderNickname}
-// 		// send the message to all users including the sender  using io.emit() 
-// 		io.emit('message', message )
-// 	})
-
-// 	//Whenever someone disconnects this piece of code executed
-// 	socket.on('disconnect',function(){
-// 		console.log('A user disconnected');
-// 		io.emit( "userdisconnect" ,' user has left')
-// 	})
-// })
-//---
+/* Message format
+{
+	"tag":"firstMessage/getDirectory/ping/ack",
+	"android":true,
+	"connection_code":"1234012002",
+	"value":"something"
+}
+*/
 
 /*references - 
 1)https://javascript.info/websocket
