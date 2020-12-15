@@ -101,37 +101,6 @@ app.get('/showAll', async (req, res) => {
   }
 });
 
-app.get('/cleanDB', async (req,res) => {
-    if(!req.body.password){
-        res.status(400).send({message:"Request should contain field password!"});
-    }
-    var password=req.body.password;
-    if(password==="admin@123"){
-        const auths = await authModel.find({});
-        try{
-            for(var i=0;i<auths.length;i++){
-                var cur_record=auths[i]
-                var initDate=auths[i]['TimeStamp']; var curDate=new Date();
-                var minutes = (curDate.getTime() - initDate.getTime()) / (1000*60);
-                if(minutes>30){
-                    authModel.deleteOne({Token:auths[i]['Token']},async (err)=>{
-                        if(err){
-                            console.log("Inside ClearDb deleteOne error : "+err)
-                        }
-                        console.log("Deleted this record : "+cur_record+" "+minutes)
-                    })
-                }
-            }
-            res.status(200).send("OK");
-        }catch(err){
-            console.log("Inside ClearDb API error: "+err);
-        }
-    }
-    else{
-        res.status(400).send({message:"Wrong password!"});
-    }
-})
-
 app.post('/verifyCode', async (req,res) => {
     if((!req.body.id)||(!req.body.code)){
         res.status(400).send({message:"Request should contain field id and code!"});
@@ -176,4 +145,36 @@ app.post('/logout', async (req,res) => {
         else res.status(200).send({message:'Logout Successfully'});
     })
 })
+
+// app.get('/cleanDB', async (req,res) => {
+//     if(!req.body.password){
+//         res.status(400).send({message:"Request should contain field password!"});
+//     }
+//     var password=req.body.password;
+//     if(password==="admin@123"){
+//         const auths = await authModel.find({});
+//         try{
+//             for(var i=0;i<auths.length;i++){
+//                 var cur_record=auths[i]
+//                 var initDate=auths[i]['TimeStamp']; var curDate=new Date();
+//                 var minutes = (curDate.getTime() - initDate.getTime()) / (1000*60);
+//                 if(minutes>30){
+//                     authModel.deleteOne({Token:auths[i]['Token']},async (err)=>{
+//                         if(err){
+//                             console.log("Inside ClearDb deleteOne error : "+err)
+//                         }
+//                         console.log("Deleted this record : "+cur_record+" "+minutes)
+//                     })
+//                 }
+//             }
+//             res.status(200).send("OK");
+//         }catch(err){
+//             console.log("Inside ClearDb API error: "+err);
+//         }
+//     }
+//     else{
+//         res.status(400).send({message:"Wrong password!"});
+//     }
+// })
+
 module.exports = app
